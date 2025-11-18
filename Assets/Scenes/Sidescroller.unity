@@ -1701,9 +1701,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a1ce42ea3e3dd44868493ae73ec06d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 0
-  acceltime: 0
-  deceltime: 0
+  gravity: 4
+  moveSpeed: 8
+  apexTime: 0.3
+  apexHeight: 3
+  playerInput: {x: 0, y: 0}
 --- !u!4 &1433354315
 Transform:
   m_ObjectHideFlags: 0
@@ -1750,7 +1752,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -1760,8 +1762,8 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
+  m_CollisionDetection: 1
+  m_Constraints: 4
 --- !u!61 &1433354318
 BoxCollider2D:
   m_ObjectHideFlags: 0
