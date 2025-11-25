@@ -86,7 +86,7 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
 
-       // rb.linearVelocityY += gravity * Time.fixedDeltaTime;
+        rb.linearVelocityY += gravity * Time.fixedDeltaTime;
 
         //rb.linearVelocityX = moveSpeed * playerInput.x;
         MovementUpdate(playerInput);
