@@ -29,9 +29,11 @@ public class PlayerController : MonoBehaviour
     private float initialJumpVelo;
     private bool useJump;
     private bool isJumping;
+    private bool canJump;
     private float jumpStartTime;
     private float currentJumpTime;
-
+    [SerializeField] private float terminalVelo;
+    [SerializeField] private float coyoteTime;
     [SerializeField] public LayerMask groundMask;
 
     [SerializeField] Vector2 playerInput = new Vector2();
@@ -45,6 +47,8 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
 
+       isJumping = false;
+        useJump = false;
        
     }
 
@@ -61,10 +65,10 @@ public class PlayerController : MonoBehaviour
         playerInput.x = Input.GetAxisRaw("Horizontal");
       
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        
+        if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             useJump = true;
-            isJumping = true;
             jumpStartTime = Time.deltaTime;
             currentJumpTime = jumpStartTime;
         }
@@ -80,7 +84,7 @@ public class PlayerController : MonoBehaviour
 
 
         //Debug.Log(IsGrounded());
-        Debug.Log(rb.linearVelocityX);
+        //Debug.Log(rb.linearVelocityX);
         
 
     }
@@ -88,25 +92,45 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
 
-        rb.linearVelocityY += gravity * Time.fixedDeltaTime;
+      
 
         //rb.linearVelocityX = moveSpeed * playerInput.x;
         MovementUpdate(playerInput);
 
+       
 
-        if (IsGrounded())
+        if (!IsGrounded())
         {
-            rb.linearVelocityY = 0f;
-           
+            Debug.Log("BWAHAHA");
+            rb.linearVelocityY += gravity * Time.deltaTime;
         }
-        if (useJump)
+        else
         {
-            //useJump = false;
+            Debug.Log("BWEHEHE");
+            isJumping = false;
+            canJump = true;
+            rb.linearVelocityY = 0;
+        }
 
-
-            //Debug.Log(currentJumpTime);
+        if (useJump && canJump)
+        {
+            isJumping = true;
+            canJump = false;
+            useJump = false;
+        }
+       
+        if (isJumping)
+        {
             rb.linearVelocityY = gravity * currentJumpTime + initialJumpVelo;
         }
+
+        if (rb.linearVelocityY < terminalVelo)
+        {
+            rb.linearVelocityY = terminalVelo;
+        }
+
+        Debug.Log(isJumping);
+        //Debug.Log(rb.linearVelocityY);
     }
 
     private void MovementUpdate(Vector2 playerInput)
@@ -131,11 +155,11 @@ public class PlayerController : MonoBehaviour
             {
                 rb.linearVelocityX = 0;
             }
-            if(rb.linearVelocityX < 0)
+            else if (rb.linearVelocityX < 0)
             {
                 rb.linearVelocityX += deceleration * Time.deltaTime;
             }
-            if(rb.linearVelocityX > 0)
+            else if (rb.linearVelocityX > 0)
             {
                 rb.linearVelocityX -= deceleration * Time.deltaTime;
             }
@@ -144,7 +168,7 @@ public class PlayerController : MonoBehaviour
 
     public bool IsWalking()
     {
-        if (rb.linearVelocityX != 0)
+        if (playerInput.x != 0)
         {
             return true;
         }
