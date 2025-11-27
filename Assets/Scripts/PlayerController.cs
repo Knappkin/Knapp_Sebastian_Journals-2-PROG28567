@@ -75,10 +75,12 @@ public class PlayerController : MonoBehaviour
             //Debug.Log(rb.linearVelocityY);
         }
 
+
         IsWalking();
 
-       
-        Debug.Log(IsGrounded());
+
+        //Debug.Log(IsGrounded());
+        Debug.Log(rb.linearVelocityX);
         
 
     }
@@ -92,6 +94,11 @@ public class PlayerController : MonoBehaviour
         MovementUpdate(playerInput);
 
 
+        if (IsGrounded())
+        {
+            rb.linearVelocityY = 0f;
+           
+        }
         if (useJump)
         {
             //useJump = false;
@@ -120,7 +127,18 @@ public class PlayerController : MonoBehaviour
         }
 
         else {
-            rb.linearVelocityX += playerInput.x * deceleration * Time.deltaTime;
+            if (rb.linearVelocityX < 0.4f &&  rb.linearVelocityX > -0.4f)
+            {
+                rb.linearVelocityX = 0;
+            }
+            if(rb.linearVelocityX < 0)
+            {
+                rb.linearVelocityX += deceleration * Time.deltaTime;
+            }
+            if(rb.linearVelocityX > 0)
+            {
+                rb.linearVelocityX -= deceleration * Time.deltaTime;
+            }
         }
     }
 
