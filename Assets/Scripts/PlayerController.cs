@@ -130,6 +130,7 @@ public class PlayerController : MonoBehaviour
         }
 
         Debug.Log(isJumping);
+        
         //Debug.Log(rb.linearVelocityY);
     }
 
