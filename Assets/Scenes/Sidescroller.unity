@@ -2103,6 +2103,7 @@ MonoBehaviour:
   apexTime: 0.3
   apexHeight: 3.5
   terminalVelo: -20
+  coyoteTime: 1
   groundMask:
     serializedVersion: 2
     m_Bits: 64

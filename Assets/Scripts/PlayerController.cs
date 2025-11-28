@@ -34,6 +34,10 @@ public class PlayerController : MonoBehaviour
     private float currentJumpTime;
     [SerializeField] private float terminalVelo;
     [SerializeField] private float coyoteTime;
+
+    private bool lastFrameGround;
+    private bool currentlyOnGround;
+    private bool canCoyote;
     [SerializeField] public LayerMask groundMask;
 
     [SerializeField] Vector2 playerInput = new Vector2();
@@ -47,8 +51,14 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
 
-       isJumping = false;
+        isJumping = false;
         useJump = false;
+        canJump = false;
+        lastFrameGround = false;
+        currentlyOnGround = false;
+        canCoyote = false;
+
+
        
     }
 
@@ -82,10 +92,10 @@ public class PlayerController : MonoBehaviour
 
         IsWalking();
 
-
-        //Debug.Log(IsGrounded());
         //Debug.Log(rb.linearVelocityX);
         
+        CoyoteCheck();
+        Debug.Log(canCoyote);
 
     }
 
@@ -101,18 +111,19 @@ public class PlayerController : MonoBehaviour
 
         if (!IsGrounded())
         {
-            Debug.Log("BWAHAHA");
+            //Debug.Log("BWAHAHA");
+            canJump = false;
             rb.linearVelocityY += gravity * Time.deltaTime;
         }
         else
         {
-            Debug.Log("BWEHEHE");
+            //Debug.Log("BWEHEHE");
             isJumping = false;
             canJump = true;
             rb.linearVelocityY = 0;
         }
 
-        if (useJump && canJump)
+        if (useJump && (canJump||canCoyote))
         {
             isJumping = true;
             canJump = false;
@@ -129,7 +140,7 @@ public class PlayerController : MonoBehaviour
             rb.linearVelocityY = terminalVelo;
         }
 
-        Debug.Log(isJumping);
+        //Debug.Log(isJumping);
         
         //Debug.Log(rb.linearVelocityY);
     }
@@ -214,5 +225,31 @@ public class PlayerController : MonoBehaviour
         {
             return FacingDirection.right;
         }
+    }
+
+    private void CoyoteCheck()
+    {
+        lastFrameGround = currentlyOnGround;
+
+        currentlyOnGround = IsGrounded();
+
+        if (!currentlyOnGround && lastFrameGround && !isJumping)
+        {
+            StartCoroutine(CoyoteTimeBuffer());
+        }
+    }
+    private IEnumerator CoyoteTimeBuffer()
+    {
+        float t = Time.deltaTime;
+        float startT = Time.deltaTime;
+         canCoyote = true;
+        while (t - startT < coyoteTime)
+        {
+            t += Time.deltaTime;
+            yield return null;
+        }
+
+        canCoyote = false;
+   
     }
 }
