@@ -35,9 +35,21 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float terminalVelo;
     [SerializeField] private float coyoteTime;
 
+
+    //Parachute Variable
+    [Header("Parachute Variables")]
+    [SerializeField] private GameObject parachuteObj;
+    private Rigidbody2D chuteRB;
+    private bool useChute;
+    [SerializeField] private float chuteXVelo;
+    [SerializeField] private float chuteYVelo;
+    [SerializeField] private float chuteTurnRate;
+
+
     private bool lastFrameGround;
     private bool currentlyOnGround;
     private bool canCoyote;
+   
     [SerializeField] public LayerMask groundMask;
 
     [SerializeField] Vector2 playerInput = new Vector2();
@@ -49,7 +61,11 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
         rb = GetComponent<Rigidbody2D>();
+        chuteRB = parachuteObj.GetComponent<Rigidbody2D>();
+
+        parachuteObj.SetActive(false);
 
         isJumping = false;
         useJump = false;
@@ -83,6 +99,16 @@ public class PlayerController : MonoBehaviour
             currentJumpTime = jumpStartTime;
         }
 
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            useChute = true;
+            parachuteObj.SetActive(true);
+        }
+
+        if (Input.GetKeyUp(KeyCode.C))
+        {
+            parachuteObj.SetActive(false) ;
+        }
         if (isJumping)
         {
             currentJumpTime += Time.deltaTime;
@@ -102,7 +128,6 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
 
-      
 
         //rb.linearVelocityX = moveSpeed * playerInput.x;
         MovementUpdate(playerInput);
