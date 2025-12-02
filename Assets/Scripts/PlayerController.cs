@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     //Rigidbody
     Rigidbody2D rb;
     public float gravity;
+    private float normalGrav;
 
     //Horizontal Movement
     [Header("Running Variables")]
@@ -41,6 +42,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject parachuteObj;
     private Rigidbody2D chuteRB;
     private bool useChute;
+    private bool canChute;
     [SerializeField] private float chuteXVelo;
     [SerializeField] private float chuteYVelo;
     [SerializeField] private float chuteTurnRate;
@@ -61,6 +63,8 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        normalGrav = gravity = -2 * apexHeight / (apexTime * apexTime);
+        gravity = normalGrav;
 
         rb = GetComponent<Rigidbody2D>();
         chuteRB = parachuteObj.GetComponent<Rigidbody2D>();
@@ -70,12 +74,11 @@ public class PlayerController : MonoBehaviour
         isJumping = false;
         useJump = false;
         canJump = false;
+
         lastFrameGround = false;
         currentlyOnGround = false;
         canCoyote = false;
 
-
-       
     }
 
     // Update is called once per frame
@@ -83,7 +86,6 @@ public class PlayerController : MonoBehaviour
     {
         acceleration = maxSpeed / accelTime;
         deceleration = maxSpeed / decelTime;
-        gravity = -2 * apexHeight / (apexTime * apexTime);
         initialJumpVelo = 2 * apexHeight / apexTime;
         //The input from the player needs to be determined and then passed in the to the MovementUpdate which should
         //manage the actual movement of the character.
@@ -99,17 +101,22 @@ public class PlayerController : MonoBehaviour
             currentJumpTime = jumpStartTime;
         }
 
-        if (Input.GetKeyDown(KeyCode.C))
+        if (Input.GetKey(KeyCode.P) && canChute)
         {
             useChute = true;
             parachuteObj.SetActive(true);
+    
         }
-
-        if (Input.GetKeyUp(KeyCode.C))
+        else
         {
-            parachuteObj.SetActive(false) ;
+            useChute = false;
+            parachuteObj.SetActive(false);
         }
-        if (isJumping)
+        //if (Input.GetKeyUp(KeyCode.C))
+        //{
+        //    parachuteObj.SetActive(false);
+        //}
+        //if (isJumping)
         {
             currentJumpTime += Time.deltaTime;
             //Debug.Log(rb.linearVelocityY);
@@ -121,7 +128,9 @@ public class PlayerController : MonoBehaviour
         //Debug.Log(rb.linearVelocityX);
         
         CoyoteCheck();
-        Debug.Log(canCoyote);
+
+        Debug.Log(useChute);
+        //Debug.Log(canCoyote);
 
     }
 
@@ -129,23 +138,37 @@ public class PlayerController : MonoBehaviour
     {
 
 
-        //rb.linearVelocityX = moveSpeed * playerInput.x;
         MovementUpdate(playerInput);
 
-       
+       if (useChute)
+        {
+            isJumping = false;
+            rb.linearVelocityY = chuteYVelo;
+           
+        }
+        else
+        {
+            gravity = normalGrav;
+        }
 
         if (!IsGrounded())
         {
             //Debug.Log("BWAHAHA");
             canJump = false;
             rb.linearVelocityY += gravity * Time.deltaTime;
+            if (rb.linearVelocityY < 0)
+            {
+                canChute = true;
+            }
         }
+
         else
         {
             //Debug.Log("BWEHEHE");
             isJumping = false;
             canJump = true;
-            rb.linearVelocityY = 0;
+            canChute = false;
+            //rb.linearVelocityY = 0;
         }
 
         if (useJump && (canJump||canCoyote))
@@ -167,7 +190,7 @@ public class PlayerController : MonoBehaviour
 
         //Debug.Log(isJumping);
         
-        //Debug.Log(rb.linearVelocityY);
+        Debug.Log(rb.linearVelocityY);
     }
 
     private void MovementUpdate(Vector2 playerInput)
