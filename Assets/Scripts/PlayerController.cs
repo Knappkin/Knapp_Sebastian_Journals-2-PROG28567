@@ -47,6 +47,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float chuteYVelo;
     [SerializeField] private float chuteTurnRate;
 
+    [Header("Bounce Floor Variables")]
+    //Bounce pad Variables
+    private bool onBP;
+    [SerializeField] private float bpMultiplier;
+    private float bpApexTime;
+    private float bpApexHeight;
+
+
 
     private bool lastFrameGround;
     private bool currentlyOnGround;
@@ -63,7 +71,7 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        normalGrav = gravity = -2 * apexHeight / (apexTime * apexTime);
+        normalGrav = -2 * apexHeight / (apexTime * apexTime);
         gravity = normalGrav;
 
         rb = GetComponent<Rigidbody2D>();
@@ -84,9 +92,21 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        float currentBPMult;
+        if (onBP)
+        {
+            currentBPMult = bpMultiplier;
+        }
+        else
+        {
+            currentBPMult = 1;
+        }
         acceleration = maxSpeed / accelTime;
         deceleration = maxSpeed / decelTime;
-        initialJumpVelo = 2 * apexHeight / apexTime;
+        initialJumpVelo = 2 * apexHeight / apexTime *currentBPMult;
+
+
         //The input from the player needs to be determined and then passed in the to the MovementUpdate which should
         //manage the actual movement of the character.
       
@@ -112,25 +132,18 @@ public class PlayerController : MonoBehaviour
             useChute = false;
             parachuteObj.SetActive(false);
         }
-        //if (Input.GetKeyUp(KeyCode.C))
-        //{
-        //    parachuteObj.SetActive(false);
-        //}
-        //if (isJumping)
         {
             currentJumpTime += Time.deltaTime;
-            //Debug.Log(rb.linearVelocityY);
         }
 
 
         IsWalking();
 
-        //Debug.Log(rb.linearVelocityX);
+    
         
         CoyoteCheck();
 
-        Debug.Log(useChute);
-        //Debug.Log(canCoyote);
+  
 
     }
 
@@ -168,7 +181,6 @@ public class PlayerController : MonoBehaviour
             isJumping = false;
             canJump = true;
             canChute = false;
-            //rb.linearVelocityY = 0;
         }
 
         if (useJump && (canJump||canCoyote))
@@ -187,22 +199,17 @@ public class PlayerController : MonoBehaviour
         {
             rb.linearVelocityY = terminalVelo;
         }
-
-        //Debug.Log(isJumping);
-        
-        Debug.Log(rb.linearVelocityY);
+       
     }
 
     private void MovementUpdate(Vector2 playerInput)
     {
         if (playerInput.x != 0)
-        {
-            
+        {        
        
         if (Mathf.Abs(rb.linearVelocityX) < maxSpeed)
         {
             rb.linearVelocityX += playerInput.x * acceleration * Time.deltaTime;
-            //Debug.Log(rb.linearVelocityX);
         }
             else
             {
@@ -240,16 +247,26 @@ public class PlayerController : MonoBehaviour
     }
     public bool IsGrounded()
     {
-        if (Physics2D.BoxCast(rb.position, Vector2.one, 0f, Vector2.down, .2f, groundMask))
-        {
+        RaycastHit2D hit = Physics2D.BoxCast(rb.position, Vector2.one, 0f, Vector2.down, .2f, groundMask);
+        if (hit)
+        {      
+            if (hit.collider.gameObject.CompareTag("Bouncy"))
+            {
+                onBP = true;
+            }
+            else
+            {
+                onBP = false;
+            }
             return true;
         }
 
         else
         {
-            return false;
+            onBP = false;
+            return false;    
         }
-
+        Debug.Log(onBP);
     }
 
     public FacingDirection GetFacingDirection()
