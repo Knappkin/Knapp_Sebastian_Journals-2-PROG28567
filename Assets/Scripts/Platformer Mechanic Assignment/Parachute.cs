@@ -4,6 +4,8 @@ public class Parachute : MonoBehaviour
 {
     public LayerMask windLayer;
     private Rigidbody2D chuteRB;
+
+    public 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

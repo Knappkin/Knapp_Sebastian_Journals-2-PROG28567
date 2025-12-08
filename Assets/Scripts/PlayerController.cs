@@ -44,17 +44,25 @@ public class PlayerController : MonoBehaviour
     private bool useChute;
     private bool canChute;
     [SerializeField] private float chuteXVelo;
+
+    [SerializeField] private float maxAirSpeed;
+    [SerializeField] private float airAccelTime;
+    private float airAccel;
+
     [SerializeField] private float chuteYVelo;
     [SerializeField] private float chuteTurnRate;
 
-    [Header("Bounce Floor Variables")]
+
+    [Header("Bounce Pad Variables")]
     //Bounce pad Variables
     private bool onBP;
     [SerializeField] private float bpMultiplier;
     private float bpApexTime;
     private float bpApexHeight;
 
-
+    [Header("Wind Tunnel Variables")]
+    private bool useWind;
+    private float windSpeed;
 
     private bool lastFrameGround;
     private bool currentlyOnGround;
@@ -87,6 +95,7 @@ public class PlayerController : MonoBehaviour
         currentlyOnGround = false;
         canCoyote = false;
 
+        useWind = false;
     }
 
     // Update is called once per frame
@@ -104,6 +113,7 @@ public class PlayerController : MonoBehaviour
         }
         acceleration = maxSpeed / accelTime;
         deceleration = maxSpeed / decelTime;
+        airAccel = maxAirSpeed / airAccelTime;
         initialJumpVelo = 2 * apexHeight / apexTime *currentBPMult;
 
 
@@ -204,21 +214,36 @@ public class PlayerController : MonoBehaviour
 
     private void MovementUpdate(Vector2 playerInput)
     {
-        if (playerInput.x != 0)
-        {        
-       
-        if (Mathf.Abs(rb.linearVelocityX) < maxSpeed)
+        if(IsGrounded())
         {
-            rb.linearVelocityX += playerInput.x * acceleration * Time.deltaTime;
+            GroundMovement(playerInput);
         }
+        else
+        {
+            airMovement(playerInput);
+        }
+        
+    }
+
+    private void GroundMovement(Vector2 playerInput)
+    {
+        if (playerInput.x != 0)
+        {
+
+
+            if (Mathf.Abs(rb.linearVelocityX) < maxSpeed)
+            {
+                rb.linearVelocityX += playerInput.x * acceleration * Time.deltaTime;
+            }
             else
             {
                 rb.linearVelocityX = maxSpeed * playerInput.x;
             }
         }
 
-        else {
-            if (rb.linearVelocityX < 0.4f &&  rb.linearVelocityX > -0.4f)
+        else
+        {
+            if (rb.linearVelocityX < 0.4f && rb.linearVelocityX > -0.4f)
             {
                 rb.linearVelocityX = 0;
             }
@@ -233,6 +258,17 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void airMovement(Vector2 playerMovement)
+    {
+        if (playerInput.x != 0)
+        {
+            if (Mathf.Abs(rb.linearVelocityX) < maxAirSpeed)
+            {
+                rb.linearVelocityX += playerInput.x * airAccel * Time.deltaTime;
+            }
+        }
+        
+    }
     public bool IsWalking()
     {
         if (playerInput.x != 0)
@@ -316,5 +352,21 @@ public class PlayerController : MonoBehaviour
 
         canCoyote = false;
    
+    }
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (useChute)
+        {
+            Debug.Log("WOOOSH");
+            useWind = true;
+            windSpeed = collision.GetComponent<WindTunnel>().windPower;
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        useWind = false;
+        windSpeed = 0;
     }
 }
