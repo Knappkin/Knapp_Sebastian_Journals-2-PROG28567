@@ -260,11 +260,13 @@ public class PlayerController : MonoBehaviour
 
     private void airMovement(Vector2 playerMovement)
     {
+        float baseVelo;
         if (playerInput.x != 0)
         {
             if (Mathf.Abs(rb.linearVelocityX) < maxAirSpeed)
             {
                 rb.linearVelocityX += playerInput.x * airAccel * Time.deltaTime;
+                baseVelo = rb.linearVelocityX;
             }
         }
         
