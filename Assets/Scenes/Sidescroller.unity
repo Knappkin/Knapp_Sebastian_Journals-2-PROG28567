@@ -2534,18 +2534,20 @@ MonoBehaviour:
   maxSpeed: 10
   accelTime: 0.5
   decelTime: 0.2
-  moveSpeed: 8
   apexTime: 0.3
   apexHeight: 3.5
   terminalVelo: -20
   coyoteTime: 1
   parachuteObj: {fileID: 2025061936}
   chuteXVelo: 0
-  maxAirSpeed: 0
-  airAccelTime: 0
+  maxAirSpeed: 10
+  airAccelTime: 1
+  airDecelTime: 2
   chuteYVelo: -2
   chuteTurnRate: 0
-  bpMultiplier: 10
+  bpMultiplier: 50
+  windAccelTime: 0.3
+  maxWindSpeed: 25
   groundMask:
     serializedVersion: 2
     m_Bits: 64
@@ -2886,7 +2888,7 @@ TilemapRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -6
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
   m_MaxChunkCount: 16
@@ -5423,15 +5425,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8522121485867119115, guid: 8fd8f0ae07a9a194c825dfd1009364cf, type: 3}
       propertyPath: windPower
-      value: 2.09
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8663020019087366021, guid: 8fd8f0ae07a9a194c825dfd1009364cf, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.032367
+      value: -5.32
       objectReference: {fileID: 0}
     - target: {fileID: 8663020019087366021, guid: 8fd8f0ae07a9a194c825dfd1009364cf, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.2348131
+      value: -0.32
       objectReference: {fileID: 0}
     - target: {fileID: 8663020019087366021, guid: 8fd8f0ae07a9a194c825dfd1009364cf, type: 3}
       propertyPath: m_LocalPosition.z
