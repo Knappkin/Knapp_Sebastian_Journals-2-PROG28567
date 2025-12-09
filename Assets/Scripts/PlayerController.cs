@@ -289,23 +289,23 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (playerInput.x != 0)
+        if (playerInput.x != 0) 
         {
 
            
-            if (Mathf.Abs(rb.linearVelocityX) < maxAirSpeed)
+            if (Mathf.Abs(rb.linearVelocityX) < maxAirSpeed) //max air speed ended up being same as grounded max speed, but good to have the option
             {
-                rb.linearVelocityX += playerInput.x * acceleration * Time.deltaTime;     
+                rb.linearVelocityX += playerInput.x * acceleration * Time.deltaTime; 
             }
             
         }
-        if (!useWind && Mathf.Abs(rb.linearVelocityX) > maxSpeed)
+        if (!useWind && Mathf.Abs(rb.linearVelocityX) > maxSpeed) // checks for if speed is above normal limit and player has left the wind tunnel
         {
-            afMulti = 3;
+            afMulti = 3; //stronger multiplier to make it slow downfaster when above normal max
         }
         else
         {
-            afMulti = 1;
+            afMulti = 1; // 
         }
         if (rb.linearVelocityX < 0)
         {
