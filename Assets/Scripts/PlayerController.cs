@@ -56,9 +56,16 @@ public class PlayerController : MonoBehaviour
     [Header("Bounce Pad Variables")]
     //Bounce pad Variables
     private bool onBP;
+    private bool firstBP;
     [SerializeField] private float bpMultiplier;
-    private float bpApexTime;
-    private float bpApexHeight;
+    private float bpAccel;
+    [SerializeField] private float bpApexTime;
+    [SerializeField] private float bpApexHeight;
+    private float initialBounceVelo;
+    private bool isBouncing;
+    private float bounceGrav;
+    private float bounceStartTime;
+    private float bouceJumpTime;
 
     [Header("Wind Tunnel Variables")]
     private bool useWind;
@@ -85,6 +92,8 @@ public class PlayerController : MonoBehaviour
         normalGrav = -2 * apexHeight / (apexTime * apexTime);
         gravity = normalGrav;
 
+        bounceGrav = -2 * bpApexHeight / (bpApexTime * bpApexTime);
+
         rb = GetComponent<Rigidbody2D>();
         chuteRB = parachuteObj.GetComponent<Rigidbody2D>();
 
@@ -99,28 +108,30 @@ public class PlayerController : MonoBehaviour
         canCoyote = false;
 
         useWind = false;
+
+        firstBP = true;
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        float currentBPMult;
         if (onBP)
         {
-            currentBPMult = bpMultiplier;
+           isBouncing = true;
         }
-        else
-        {
-            currentBPMult = 1;
-        }
+       
         acceleration = maxSpeed / accelTime;
         deceleration = maxSpeed / decelTime;
         airAccel = maxAirSpeed / airAccelTime;
+        
 
         airFriction = maxAirSpeed / airDecelTime;
         windAccel = maxWindSpeed / windAccelTime;
-        initialJumpVelo = 2 * apexHeight / apexTime *currentBPMult;
+
+        initialJumpVelo = 2 * apexHeight / apexTime;
+
+        initialBounceVelo = 2 * bpApexHeight / bpApexTime;
 
 
         //The input from the player needs to be determined and then passed in the to the MovementUpdate which should
@@ -147,9 +158,9 @@ public class PlayerController : MonoBehaviour
             useChute = false;
             parachuteObj.SetActive(false);
         }
-        {
+        
             currentJumpTime += Time.deltaTime;
-        }
+        
 
 
         IsWalking();
@@ -174,10 +185,7 @@ public class PlayerController : MonoBehaviour
             rb.linearVelocityY = chuteYVelo;
            
         }
-        else
-        {
-           // gravity = normalGrav;
-        }
+       
 
         if (!IsGrounded())
         {
@@ -196,6 +204,8 @@ public class PlayerController : MonoBehaviour
             isJumping = false;
             canJump = true;
             canChute = false;
+            isBouncing = false;
+            firstBP = true;
         }
 
         if (useJump && (canJump||canCoyote))
@@ -210,6 +220,10 @@ public class PlayerController : MonoBehaviour
             rb.linearVelocityY = gravity * currentJumpTime + initialJumpVelo;
         }
 
+        if (isBouncing)
+        {
+            rb.linearVelocityY = bounceGrav * currentJumpTime + initialJumpVelo;
+        }
         if (rb.linearVelocityY < terminalVelo)
         {
             rb.linearVelocityY = terminalVelo;
