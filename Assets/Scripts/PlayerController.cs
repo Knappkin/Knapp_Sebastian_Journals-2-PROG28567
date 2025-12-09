@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     Rigidbody2D rb;
     public float gravity;
     private float normalGrav;
+    [SerializeField] private Transform startPos;
 
     //Horizontal Movement
     [Header("Running Variables")]
@@ -42,8 +43,6 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D chuteRB;
     private bool useChute;
     private bool canChute;
-    [SerializeField] private float chuteXVelo;
-
     [SerializeField] private float maxAirSpeed;
     [SerializeField] private float airAccelTime;
     [SerializeField] private float airDecelTime;
@@ -130,7 +129,7 @@ public class PlayerController : MonoBehaviour
         playerInput.x = Input.GetAxisRaw("Horizontal");
       
 
-        
+        //if (input)
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             useJump = true;
@@ -142,7 +141,6 @@ public class PlayerController : MonoBehaviour
         {
             useChute = true;
             parachuteObj.SetActive(true);
-    
         }
         else
         {
@@ -157,7 +155,7 @@ public class PlayerController : MonoBehaviour
         IsWalking();
 
     
-        
+      
         CoyoteCheck();
 
   
@@ -229,7 +227,7 @@ public class PlayerController : MonoBehaviour
         {
             airMovement(playerInput);
         }
-        Debug.Log(windSpeed);
+        Debug.Log(rb.linearVelocityX);
     }
 
     private void GroundMovement(Vector2 playerInput)
@@ -267,7 +265,7 @@ public class PlayerController : MonoBehaviour
 
     private void airMovement(Vector2 playerInput)
     {
-
+        float afMulti = 1;
         if (useWind)
         {
             if (Mathf.Abs(rb.linearVelocityX) < maxWindSpeed)
@@ -284,15 +282,23 @@ public class PlayerController : MonoBehaviour
             {
                 rb.linearVelocityX += playerInput.x * acceleration * Time.deltaTime;     
             }
-
+            
+        }
+        if (!useWind && Mathf.Abs(rb.linearVelocityX) > maxSpeed)
+        {
+            afMulti = 3;
+        }
+        else
+        {
+            afMulti = 1;
         }
         if (rb.linearVelocityX < 0)
         {
-            rb.linearVelocityX += airFriction * Time.deltaTime;
+            rb.linearVelocityX += airFriction * Time.deltaTime * afMulti;
         }
         else if (rb.linearVelocityX > 0)
         {
-            rb.linearVelocityX -= airFriction * Time.deltaTime;
+            rb.linearVelocityX -= airFriction * Time.deltaTime * afMulti;
         }
 
     }
@@ -329,7 +335,6 @@ public class PlayerController : MonoBehaviour
             onBP = false;
             return false;    
         }
-        Debug.Log(onBP);
     }
 
     public FacingDirection GetFacingDirection()
