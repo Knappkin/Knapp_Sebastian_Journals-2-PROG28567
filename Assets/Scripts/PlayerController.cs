@@ -54,10 +54,9 @@ public class PlayerController : MonoBehaviour
 
 
     [Header("Bounce Pad Variables")]
-    //Bounce pad Variables
+    [SerializeField] private float bpMultiplier;
     private bool onBP;
     private bool firstBP;
-    [SerializeField] private float bpMultiplier;
     private float bpAccel;
     [SerializeField] private float bpApexTime;
     [SerializeField] private float bpApexHeight;
@@ -65,13 +64,14 @@ public class PlayerController : MonoBehaviour
     private bool isBouncing;
     private float bounceGrav;
     private float bounceStartTime;
-    private float bouceJumpTime;
+    private float currentBounceTime;
 
     [Header("Wind Tunnel Variables")]
+    [SerializeField] private float windAccelTime;
     private bool useWind;
     private float windSpeed;
     private float windAccel;
-    [SerializeField] private float windAccelTime;
+    
     [SerializeField] private float maxWindSpeed;
 
     private bool lastFrameGround;
@@ -116,9 +116,13 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
 
-        if (onBP)
+        if (onBP && firstBP)
         {
-           isBouncing = true;
+           //useBounce = true;
+           firstBP = false;
+            isBouncing = true;
+            bounceStartTime = Time.deltaTime;
+            currentBounceTime = bounceStartTime;
         }
        
         acceleration = maxSpeed / accelTime;
@@ -160,7 +164,7 @@ public class PlayerController : MonoBehaviour
         }
         
             currentJumpTime += Time.deltaTime;
-        
+            currentBounceTime += Time.deltaTime;
 
 
         IsWalking();
@@ -169,7 +173,7 @@ public class PlayerController : MonoBehaviour
       
         CoyoteCheck();
 
-  
+        Debug.Log(firstBP);
 
     }
 
@@ -182,6 +186,7 @@ public class PlayerController : MonoBehaviour
        if (useChute)
         {
             isJumping = false;
+            isBouncing = false;
             rb.linearVelocityY = chuteYVelo;
            
         }
@@ -191,7 +196,7 @@ public class PlayerController : MonoBehaviour
         {
             //Debug.Log("BWAHAHA");
             canJump = false;
-            rb.linearVelocityY += gravity * Time.deltaTime;
+           
             if (rb.linearVelocityY < 0)
             {
                 canChute = true;
@@ -222,13 +227,17 @@ public class PlayerController : MonoBehaviour
 
         if (isBouncing)
         {
-            rb.linearVelocityY = bounceGrav * currentJumpTime + initialJumpVelo;
+            rb.linearVelocityY = bounceGrav * currentBounceTime + initialBounceVelo;
         }
+
+        rb.linearVelocityY += gravity * Time.deltaTime;
+
         if (rb.linearVelocityY < terminalVelo)
         {
             rb.linearVelocityY = terminalVelo;
         }
-       
+     
+
     }
 
     private void MovementUpdate(Vector2 playerInput)
@@ -241,7 +250,7 @@ public class PlayerController : MonoBehaviour
         {
             airMovement(playerInput);
         }
-        Debug.Log(rb.linearVelocityX);
+        //Debug.Log(rb.linearVelocityX);
     }
 
     private void GroundMovement(Vector2 playerInput)
