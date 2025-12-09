@@ -28,7 +28,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float apexHeight;
     private float initialJumpVelo;
     //Three booleans for jumping //useJump set in update on key press > then the jump happens in fixed update when useJump is true
-    private bool useJump;
+    private bool useJump; //Gets the initial key press, starts the jump
     //Bool to tell if player is currently in a jump
     private bool isJumping;
     //Bool to control when the player can use jump
@@ -62,7 +62,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float bpApexHeight;
     private bool onBP; // Bool to detect whether or not player is standing on a bounce pad
     private bool firstBP; //Basically canBP, is set to false on first bp frame
-    private float initialBounceVelo; // Same implementation as jumping, just different (more extreme) values to higher
+    private float initialBounceVelo; // Same implementation as jumping, just different (more extreme) values to go higher
     private bool isBouncing;
     private float bounceGrav;
     private float bounceStartTime;
@@ -186,16 +186,16 @@ public class PlayerController : MonoBehaviour
 
         if (!IsGrounded()) //Checks if the player is in the ground - calls the isGrounded function in the check
         {
-            //Debug.Log("BWAHAHA");
-            canJump = false;
+            //Debug.Log("BWAHAHA");  //I don't have the heart to erase this line of code
+            canJump = false; //Making it so the player can't jump when in the air (either mid-jump or falling)
            
-            if (rb.linearVelocityY < 0)
+            if (rb.linearVelocityY < 0) //Makes it so the player can only use the parachute when falling downwards
             {
                 canChute = true;
             }
         }
 
-        else
+        else //AKA is on the ground
         {
             //Debug.Log("BWEHEHE");
             isJumping = false;
@@ -205,7 +205,7 @@ public class PlayerController : MonoBehaviour
             firstBP = true;
         }
 
-        if (useJump && (canJump||canCoyote))
+        if (useJump && (canJump||canCoyote)) //Gets the use jump from update //If jumping is possible, do it
         {
             isJumping = true;
             canJump = false;
@@ -214,17 +214,17 @@ public class PlayerController : MonoBehaviour
        
         if (isJumping)
         {
-            rb.linearVelocityY = gravity * currentJumpTime + initialJumpVelo;
+            rb.linearVelocityY = gravity * currentJumpTime + initialJumpVelo; //Gravity to apply if jumping
         }
 
         if (isBouncing)
         {
-            rb.linearVelocityY = bounceGrav * currentBounceTime + initialBounceVelo;
+            rb.linearVelocityY = bounceGrav * currentBounceTime + initialBounceVelo; //Gravity to apply if bouncing
         }
 
-        rb.linearVelocityY += gravity * Time.deltaTime;
+        rb.linearVelocityY += gravity * Time.deltaTime; //Adds base gravity per fixed update frame
 
-        if (rb.linearVelocityY < terminalVelo)
+        if (rb.linearVelocityY < terminalVelo) //Capping vertical fall speed (aka terminal velo)
         {
             rb.linearVelocityY = terminalVelo;
         }
@@ -232,60 +232,60 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    private void MovementUpdate(Vector2 playerInput)
+    private void MovementUpdate(Vector2 playerInput) //Called every fixed update frame //handles horizontal movement
     {
-        if(IsGrounded())
+        if(IsGrounded()) //If grounded > use ground movement
         {
             GroundMovement(playerInput);
         }
         else
         {
-            airMovement(playerInput);
+            airMovement(playerInput); // >Otherwise use air movement
         }
-        //Debug.Log(rb.linearVelocityX);
     }
 
     private void GroundMovement(Vector2 playerInput)
     {
-        if (playerInput.x != 0)
+        if (playerInput.x != 0) //When a movement key is held
         {
 
 
-            if (Mathf.Abs(rb.linearVelocityX) < maxSpeed)
+            if (Mathf.Abs(rb.linearVelocityX) < maxSpeed) //If not at max speed, add acceleration
             {
-                rb.linearVelocityX += playerInput.x * acceleration * Time.deltaTime;
+                rb.linearVelocityX += playerInput.x * acceleration * Time.deltaTime; //multiplying by player input(will be either 1 or -1)
             }
             else
             {
-                rb.linearVelocityX = maxSpeed * playerInput.x;
+                rb.linearVelocityX = maxSpeed * playerInput.x; //Capping horizontal speed to max walking speed //Use absolute value to check for that speed in either direction
             }
         }
 
-        else
+        else //If no key is held
         {
-            if (rb.linearVelocityX < 0.8f && rb.linearVelocityX > -0.8f)
+            if (rb.linearVelocityX < 0.8f && rb.linearVelocityX > -0.8f) //Setting the speed to 0 if it falls within a small range, prevents permanently decelerating/overcorrecting
             {
                 rb.linearVelocityX = 0;
             }
-            else if (rb.linearVelocityX < 0)
+            else if (rb.linearVelocityX < 0) //if moving left, add decel
             {
                 rb.linearVelocityX += deceleration * Time.deltaTime;
             }
-            else if (rb.linearVelocityX > 0)
+            else if (rb.linearVelocityX > 0) //if moving right, subtract decel
             {
                 rb.linearVelocityX -= deceleration * Time.deltaTime;
             }
         }
     }
 
-    private void airMovement(Vector2 playerInput)
+    private void airMovement(Vector2 playerInput) //Handles horizontal movement when player is not on ground
     {
-        float afMulti = 1;
-        if (useWind)
+        float afMulti = 1; //A multiplier ti slow the player down faster if they are above normal max speed after leaving a wind tunnel
+
+        if (useWind)//Movement when currently in wind tunnel
         {
-            if (Mathf.Abs(rb.linearVelocityX) < maxWindSpeed)
+            if (Mathf.Abs(rb.linearVelocityX) < maxWindSpeed) //similar check - is horizontal movement greater than max speed of wind tunnel
             {
-                rb.linearVelocityX += windSpeed * windAccel * Time.deltaTime;
+                rb.linearVelocityX += windSpeed * windAccel * Time.deltaTime; //In which case add the wind speed times accel (speed includes direction)
             }
         }
 
