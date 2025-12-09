@@ -6,79 +6,78 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
 
-    //Rigidbody
+    //Player rigidbody
     Rigidbody2D rb;
     public float gravity;
     private float normalGrav;
-    [SerializeField] private Transform startPos;
 
     //Horizontal Movement
-    [Header("Running Variables")]
-    [SerializeField] private float maxSpeed;
+    //Variables for controller the speed up, slow down, and max speed of the player's horizontal movement
+    [Header("Running Variables")] [SerializeField] private float maxSpeed;
     [SerializeField] private float accelTime;
     [SerializeField] private float decelTime;
-
+    //stores the last facing direction as either 0 or 1 (left or right) //used for turning the sprite direction
     private float lastFacingDir;
-
+    //floats for the acceleration and deceleration of the horizontal movement //Calculated in update so values could be changed at runtime
     private float acceleration;
     private float deceleration;
 
     //Jumping
-    [Header("Jump Variables")]
-    [SerializeField] private float apexTime;
+    //Variables for jump mechanic, using the apex height and time methods shown in class //Includes variables for terminal velocity and coyote time buffers
+    [Header("Jump Variables")] [SerializeField] private float apexTime;
     [SerializeField] private float apexHeight;
     private float initialJumpVelo;
+    //Three booleans for jumping //useJump set in update on key press > then the jump happens in fixed update when useJump is true
     private bool useJump;
+    //Bool to tell if player is currently in a jump
     private bool isJumping;
+    //Bool to control when the player can use jump
     private bool canJump;
     private float jumpStartTime;
     private float currentJumpTime;
     [SerializeField] private float terminalVelo;
     [SerializeField] private float coyoteTime;
+    private bool lastFrameGround; //Checking if the previous frame was on the ground
+    private bool currentlyOnGround; //Checking if currently on ground. If no but last frame was, start coyote check
+    private bool canCoyote; //boolean for whether player can still jump after leaving ground
 
 
-    //Parachute Variable
+    //Parachute Variables
     [Header("Parachute Variables")]
     [SerializeField] private GameObject parachuteObj;
-    private Rigidbody2D chuteRB;
+    //Booleans for controlling when the parachute is activated, when it can be used
     private bool useChute;
     private bool canChute;
+    //Variables for horizontal movement in the air
     [SerializeField] private float maxAirSpeed;
     [SerializeField] private float airAccelTime;
     [SerializeField] private float airDecelTime;
+    //Deceleration equivalent, added against current acceleration every fixedupdate frame to slow the player down
     private float airFriction;
-    private float airAccel;
-
     [SerializeField] private float chuteYVelo;
-    [SerializeField] private float chuteTurnRate;
 
-
+    //Variables for Bounce Pad Mechanic
     [Header("Bounce Pad Variables")]
-    [SerializeField] private float bpMultiplier;
-    private bool onBP;
-    private bool firstBP;
-    private float bpAccel;
     [SerializeField] private float bpApexTime;
     [SerializeField] private float bpApexHeight;
-    private float initialBounceVelo;
+    private bool onBP; // Bool to detect whether or not player is standing on a bounce pad
+    private bool firstBP; //Basically canBP, is set to false on first bp frame
+    private float initialBounceVelo; // Same implementation as jumping, just different (more extreme) values to higher
     private bool isBouncing;
     private float bounceGrav;
     private float bounceStartTime;
     private float currentBounceTime;
 
     [Header("Wind Tunnel Variables")]
-    [SerializeField] private float windAccelTime;
-    private bool useWind;
+    [SerializeField] private float windAccelTime; //Horizontal movement variables for wind Tunnels
+    private bool useWind; //True if the player is overlapping a wind tunnel //when true adds wind accel to player's acceleration
     private float windSpeed;
     private float windAccel;
-    
-    [SerializeField] private float maxWindSpeed;
+    [SerializeField] private float maxWindSpeed; //Max speed is higher when being pushed by wind
 
-    private bool lastFrameGround;
-    private bool currentlyOnGround;
-    private bool canCoyote;
    
-    [SerializeField] public LayerMask groundMask;
+   
+    [SerializeField] public LayerMask groundMask; //Reference to ground mask //Used for both ground and bouncepad layers
 
     [SerializeField] Vector2 playerInput = new Vector2();
     public enum FacingDirection
@@ -89,53 +88,50 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        normalGrav = -2 * apexHeight / (apexTime * apexTime);
+        normalGrav = -2 * apexHeight / (apexTime * apexTime); //Setting the default gravity for jumping - based on apex height and time
         gravity = normalGrav;
 
-        bounceGrav = -2 * bpApexHeight / (bpApexTime * bpApexTime);
+        bounceGrav = -2 * bpApexHeight / (bpApexTime * bpApexTime); //Separate gravity used for when launching off bounce pad
 
         rb = GetComponent<Rigidbody2D>();
-        chuteRB = parachuteObj.GetComponent<Rigidbody2D>();
 
-        parachuteObj.SetActive(false);
+        parachuteObj.SetActive(false); //Start with the parachute off
 
-        isJumping = false;
+        isJumping = false; //Will be set to true as soon as player touches ground 
         useJump = false;
-        canJump = false;
+        canJump = false; //Will be set to true when player touches ground
 
-        lastFrameGround = false;
-        currentlyOnGround = false;
+        lastFrameGround = false; //Will be set tSo true when player touches ground
+        currentlyOnGround = false; //Will be set to true when player touches ground
         canCoyote = false;
 
         useWind = false;
 
-        firstBP = true;
+        firstBP = true; //starts true since player hasnt touched a bounce pad yet
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        if (onBP && firstBP)
+        if (onBP && firstBP) //Detects if player is on bounce pad to trigger the bounce launch
         {
-           //useBounce = true;
-           firstBP = false;
-            isBouncing = true;
-            bounceStartTime = Time.deltaTime;
-            currentBounceTime = bounceStartTime;
+           firstBP = false; //Makes it so it the if check will only pass for the first frame the player is on the pad
+            isBouncing = true; //then tells fixed update that the player should bounce
+            bounceStartTime = Time.deltaTime; //Starting the timer for bouce
+            currentBounceTime = bounceStartTime; //current time also set, added to each frame
         }
        
-        acceleration = maxSpeed / accelTime;
+        acceleration = maxSpeed / accelTime; //Calculating accel and decel of player's horizontal movement. In update so the values can be changed at runtime
         deceleration = maxSpeed / decelTime;
-        airAccel = maxAirSpeed / airAccelTime;
         
 
-        airFriction = maxAirSpeed / airDecelTime;
-        windAccel = maxWindSpeed / windAccelTime;
+        airFriction = maxAirSpeed / airDecelTime; //Calculating the friction to add while in the air
+        windAccel = maxWindSpeed / windAccelTime; //Calculating the acceleration for when the plaer is in a wind tunnel
 
-        initialJumpVelo = 2 * apexHeight / apexTime;
+        initialJumpVelo = 2 * apexHeight / apexTime; //Jump velo for jump calculation
 
-        initialBounceVelo = 2 * bpApexHeight / bpApexTime;
+        initialBounceVelo = 2 * bpApexHeight / bpApexTime; //Bounce velo for bounce calc
 
 
         //The input from the player needs to be determined and then passed in the to the MovementUpdate which should
@@ -145,19 +141,19 @@ public class PlayerController : MonoBehaviour
       
 
         //if (input)
-        if (Input.GetKeyDown(KeyCode.Space) && canJump)
+        if (Input.GetKeyDown(KeyCode.Space) && canJump) //Triggers the jump
         {
             useJump = true;
-            jumpStartTime = Time.deltaTime;
-            currentJumpTime = jumpStartTime;
+            jumpStartTime = Time.deltaTime; //getting the start time of the jump
+            currentJumpTime = jumpStartTime; //also set current jump time, adds delta time each frame at end of update
         }
 
-        if (Input.GetKey(KeyCode.P) && canChute)
+        if (Input.GetKey(KeyCode.P) && canChute) //if the player can parachute and *holds* the button. The player can start pressing before the parachute can actually activate, and it will turn on as soon as it is possible
         {
             useChute = true;
             parachuteObj.SetActive(true);
         }
-        else
+        else //Hiding the parachute if key is let go or can not parachute for other reason (such as lands on the ground)
         {
             useChute = false;
             parachuteObj.SetActive(false);
@@ -167,32 +163,28 @@ public class PlayerController : MonoBehaviour
             currentBounceTime += Time.deltaTime;
 
 
-        IsWalking();
-
-    
+        IsWalking();//Calling the check for x movement
       
-        CoyoteCheck();
-
-        Debug.Log(firstBP);
+        CoyoteCheck();//Calling the coyote check
 
     }
 
     private void FixedUpdate()
     {
+        //PARACHUTE FOR PRESIDENT!!!
 
+        MovementUpdate(playerInput); //Calls the movement function //which then calls either ground or air movement
 
-        MovementUpdate(playerInput);
-
-       if (useChute)
+       if (useChute) //setting the necessary booleans when player is parachuting
         {
-            isJumping = false;
-            isBouncing = false;
-            rb.linearVelocityY = chuteYVelo;
+            isJumping = false; //isn't jumping (won't apply the y linear velo calcs of jumping)
+            isBouncing = false; //isn't bouncing (same here)
+            rb.linearVelocityY = chuteYVelo; //Setting the y velo the the chute fall speed set in the inspector
            
         }
        
 
-        if (!IsGrounded())
+        if (!IsGrounded()) //Checks if the player is in the ground - calls the isGrounded function in the check
         {
             //Debug.Log("BWAHAHA");
             canJump = false;

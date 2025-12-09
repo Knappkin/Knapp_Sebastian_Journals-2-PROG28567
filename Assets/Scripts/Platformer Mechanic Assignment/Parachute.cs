@@ -2,6 +2,11 @@ using UnityEngine;
 
 public class Parachute : MonoBehaviour
 {
+
+    //THIS SCRIPT IS A GRAVEYARD//
+    //WAS ORIGINALLY TRYING TO DETECT THE WIND CONTACT ON THE ACTUAL PARACHUTE//
+    //WASN'T ABLE TO GET IT TO WORK SO I MOVED IT ALL TO PLAYER SCRIPT//
+
     public LayerMask windLayer;
     private Rigidbody2D chuteRB;
 
