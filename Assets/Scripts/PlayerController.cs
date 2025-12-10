@@ -305,9 +305,9 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            afMulti = 1; // 
+            afMulti = 1; //otherwise normal 
         }
-        if (rb.linearVelocityX < 0)
+        if (rb.linearVelocityX < 0) //Adding horizontal air friction based on player direction
         {
             rb.linearVelocityX += airFriction * Time.deltaTime * afMulti;
         }
@@ -317,7 +317,7 @@ public class PlayerController : MonoBehaviour
         }
 
     }
-    public bool IsWalking()
+    public bool IsWalking() //Super simple, checking if there is a player input
     {
         if (playerInput.x != 0)
         {
@@ -329,12 +329,12 @@ public class PlayerController : MonoBehaviour
         }
        
     }
-    public bool IsGrounded()
+    public bool IsGrounded() //Checking for ground using a boxcast //returns true/false
     {
         RaycastHit2D hit = Physics2D.BoxCast(rb.position, Vector2.one, 0f, Vector2.down, .2f, groundMask);
         if (hit)
         {      
-            if (hit.collider.gameObject.CompareTag("Bouncy"))
+            if (hit.collider.gameObject.CompareTag("Bouncy")) //if grounded is true, will check if the ground has the bouncy tag to determine which jump variables to use
             {
                 onBP = true;
             }
@@ -347,14 +347,14 @@ public class PlayerController : MonoBehaviour
 
         else
         {
-            onBP = false;
+            onBP = false; //Setting it to false here too so that it won't stay true while off the ground after it is triggered
             return false;    
         }
     }
 
-    public FacingDirection GetFacingDirection()
+    public FacingDirection GetFacingDirection() //Getting whether the player is moving left or right for controlling the sprite direction
     {
-
+        //used true and false, could have been a boolean though
         if (playerInput.x < 0)
         {
             lastFacingDir = 0;
@@ -375,18 +375,18 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void CoyoteCheck()
+    private void CoyoteCheck() //Function for checking whether the player can coyote
     {
-        lastFrameGround = currentlyOnGround;
+        lastFrameGround = currentlyOnGround; //last frame is used to compare current and previous frames and see if they have just left the ground
 
         currentlyOnGround = IsGrounded();
 
-        if (!currentlyOnGround && lastFrameGround && !isJumping)
+        if (!currentlyOnGround && lastFrameGround && !isJumping) //If conditions have been met (just left ground) then start the buffer
         {
             StartCoroutine(CoyoteTimeBuffer());
         }
     }
-    private IEnumerator CoyoteTimeBuffer()
+    private IEnumerator CoyoteTimeBuffer() //coroutine to act as a coyote time timer
     {
         float t = Time.deltaTime;
         float startT = Time.deltaTime;
@@ -401,17 +401,17 @@ public class PlayerController : MonoBehaviour
    
     }
 
-    private void OnTriggerStay2D(Collider2D collision)
+    private void OnTriggerStay2D(Collider2D collision) //Only thing in scene that acts a trigger are the wind tunnels, so don't need to check layer or anything in this case
     {
-        if (useChute)
+        if (useChute) //If chute is active and player is overlapping a wind tunnel, tell the air movement to use wind variables
         {
             Debug.Log("WOOOSH");
             useWind = true;
-            windSpeed = collision.GetComponent<WindTunnel>().windPower;
+            windSpeed = collision.GetComponent<WindTunnel>().windPower; //This gets the direction(-1 or 1) * the multiplier, both set on the prefab instance
         }
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    private void OnTriggerExit2D(Collider2D collision) //Stop using wind upon exiting tunnel
     {
         useWind = false;
         windSpeed = 0;
